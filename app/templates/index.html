@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>megapazar | Moda & Alışveriş</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="logo" onclick="window.location.href='{{ url_for('main.index') }}'">megapazar</div>
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Ürün veya kategori ara..." autocomplete="off">
+            <span class="search-icon" id="searchBtn"><i class="fas fa-search"></i></span>
+            <div id="search-suggestions" style="display:none;position:absolute;top:110%;left:0;width:100%;background:#fff;border-radius:0 0 16px 16px;box-shadow:0 4px 16px rgba(0,0,0,0.07);z-index:10;"></div>
+        </div>
+        <div class="header-actions">
+        {% if current_user.is_authenticated %}
+            <div class="account-menu" style="position:relative;">
+                <button class="login-btn" id="accountBtn">Hesabım <i class="fa-solid fa-chevron-down" style="font-size:0.9em;"></i></button>
+                <div class="account-dropdown" id="accountDropdown" style="display:none;position:absolute;top:110%;right:0;background:#fff;box-shadow:0 4px 16px rgba(0,0,0,0.09);border-radius:14px;min-width:180px;z-index:100;">
+                    <a href="/my-orders" class="dropdown-item">Siparişlerim</a>
+                    <a href="/my-profile" class="dropdown-item">Kullanıcı Bilgilerim</a>
+                    <a href="/logout" class="dropdown-item" style="color:#e53935;">Çıkış Yap</a>
+                </div>
+            </div>
+        {% else %}
+            <button class="login-btn" onclick="window.location.href='{{ url_for('main.login') }}'">Giriş Yap / Kayıt Ol</button>
+        {% endif %}
+            <button class="icon-btn" title="Favorilerim" onclick="window.location.href='{{ url_for('main.favorites') }}'"><i class="fa-regular fa-heart"></i></button>
+            <button class="icon-btn" title="Sepetim" onclick="window.location.href='{{ url_for('main.cart') }}'">
+                <i class="fa-solid fa-basket-shopping"></i>
+                <span class="cart-count" id="cartCount">0</span>
+            </button>
+        </div>
+    </div>
+    <!-- Login/Register Modal -->
+    <!-- Modal ve ilgili kodlar tamamen kaldırıldı -->
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-item" onclick="window.location.href='{{ url_for('main.category', cat_name='Giyim') }}'">Giyim
+            <div class="dropdown">
+                <div class="dropdown-item" onclick="event.stopPropagation();window.location.href='{{ url_for('main.category', cat_name='Kadın') }}'">Kadın</div>
+                <div class="dropdown-item" onclick="event.stopPropagation();window.location.href='{{ url_for('main.category', cat_name='Erkek') }}'">Erkek</div>
+                <div class="dropdown-item" onclick="event.stopPropagation();window.location.href='{{ url_for('main.category', cat_name='Çocuk') }}'">Çocuk</div>
+            </div>
+        </div>
+        <div class="nav-item" onclick="window.location.href='{{ url_for('main.category', cat_name='Ayakkabı') }}'">Ayakkabı</div>
+        <div class="nav-item" onclick="window.location.href='{{ url_for('main.category', cat_name='Aksesuar & Çanta') }}'">Aksesuar & Çanta</div>
+        <div class="nav-item" onclick="window.location.href='{{ url_for('main.category', cat_name='Ev & İç Giyim') }}'">Ev & İç Giyim</div>
+        <div class="nav-item" onclick="window.location.href='{{ url_for('main.category', cat_name='Kozmetik') }}'">Kozmetik</div>
+        <div class="nav-item" onclick="window.location.href='{{ url_for('main.category', cat_name='Spor & Outdoor') }}'">Spor & Outdoor</div>
+    </nav>
+    <!-- Slider -->
+    <div class="slider" id="slider" onclick="window.location.href='/campaign/indirim'">
+        <img src="https://dummyimage.com/1200x320/ffeaea/e53935&text=Yaz+Kampanyası+%25+50+İndirim" alt="Kampanya 1">
+        <div class="slider-controls">
+            <button class="slider-btn" onclick="event.stopPropagation();prevSlide();"><i class="fa-solid fa-chevron-left"></i></button>
+            <button class="slider-btn" onclick="event.stopPropagation();nextSlide();"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+    </div>
+    <!-- Campaigns -->
+    <div class="campaigns">
+        <div class="campaign-banner" onclick="window.location.href='/campaign/indirim'"><i class="fa-solid fa-bolt"></i> %50 İndirimli Ürünler</div>
+        <div class="campaign-banner" onclick="window.location.href='/campaign/kargo'"><i class="fa-solid fa-truck-fast"></i> Ücretsiz Kargo</div>
+        <div class="campaign-banner" onclick="window.location.href='/campaign/hediye'"><i class="fa-solid fa-gift"></i> Sürpriz Hediyeler</div>
+    </div>
+    <!-- Featured Products -->
+    <div class="section-title">Sana Özel Öneriler</div>
+    <div class="product-row">
+        {% for product in products %}
+        <div class="product-card" data-product-id="{{ product.id }}">
+            <a href="/product/{{ product.id }}" class="product-image-container" style="display:block;text-align:center;">
+                <img src="{{ product.image_url if product.image_url else '/static/img/default.jpg' }}" alt="{{ product.name }}">
+            </a>
+            <a href="/product/{{ product.id }}" class="product-name" style="display:block;text-align:center;text-decoration:none;color:inherit;">
+                <h3>{{ product.name }}</h3>
+            </a>
+            <p class="product-price">{{ '%.2f' % (product.price / 100) }} TL</p>
+            <div class="product-actions">
+                <button class="btn main-add-to-cart-btn" onclick="addToCart({{ product.id }}, '{{ product.name }}', {{ product.price }})"><i class="fa-solid fa-cart-plus"></i> Sepete Ekle</button>
+                <button class="btn main-favorite-btn" onclick="toggleFavorite({{ product.id }}, this)" title="Favorilere ekle/çıkar"><i class="fa-regular fa-heart"></i></button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <!-- Popup -->
+    <div class="popup" id="popup"></div>
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="#">Hakkımızda</a>
+            <a href="#">İletişim</a>
+            <a href="#">Sıkça Sorulan Sorular</a>
+            <a href="#">Gizlilik Politikası</a>
+        </div>
+        <div class="footer-social">
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-facebook"></i></a>
+            <a href="#"><i class="fab fa-x-twitter"></i></a>
+            <a href="#"><i class="fab fa-tiktok"></i></a>
+        </div>
+        <div class="footer-newsletter">
+            <input type="email" placeholder="E-posta adresiniz">
+            <button>Abone Ol</button>
+        </div>
+        <div style="font-size:0.95rem;color:#aaa;">&copy; 2025 megapazar. Tüm hakları saklıdır.</div>
+    </footer>
+    <style>
+    .account-dropdown { box-shadow:0 4px 16px rgba(0,0,0,0.09); border-radius:14px; min-width:180px; background:#fff; padding:0.5rem 0; }
+    .account-dropdown .dropdown-item { display:block; padding:0.7rem 1.3rem; color:#444; text-decoration:none; font-size:1rem; transition:background 0.2s, color 0.2s; }
+    .account-dropdown .dropdown-item:hover { background:#ffeaea; color:#e53935; }
+    </style>
+    <script>
+    // Slider demo
+    const sliderImages = [
+        'https://dummyimage.com/1200x320/ffeaea/e53935&text=Yaz+Kampanyası+%25+50+İndirim',
+        'https://dummyimage.com/1200x320/e3f2fd/1976d2&text=Kargo+Bedava+Fırsatı',
+        'https://dummyimage.com/1200x320/fff3e0/ffb300&text=Yeni+Sezon+Ürünleri'
+    ];
+    let currentSlide = 0;
+    function showSlide(idx) {
+        const slider = document.getElementById('slider').getElementsByTagName('img')[0];
+        slider.src = sliderImages[idx];
+    }
+    function nextSlide() {
+        currentSlide = (currentSlide + 1) % sliderImages.length;
+        showSlide(currentSlide);
+    }
+    function prevSlide() {
+        currentSlide = (currentSlide - 1 + sliderImages.length) % sliderImages.length;
+        showSlide(currentSlide);
+    }
+    setInterval(nextSlide, 5000);
+    // Popup
+    function showPopup(msg) {
+        const popup = document.getElementById('popup');
+        popup.textContent = msg;
+        popup.classList.add('show');
+        setTimeout(() => popup.classList.remove('show'), 2000);
+    }
+    // Favoriler
+    function addToFavorites(productId) {
+        showPopup('Favorilere eklendi!');
+    }
+    // Akıllı arama önerisi (demo)
+    const suggestions = ['Giyim', 'Ayakkabı', 'Aksesuar', 'Çanta', 'Kozmetik', 'Spor', 'Tişört', 'Sneaker', 'Çocuk'];
+    const searchInput = document.getElementById('searchInput');
+    const suggestionBox = document.getElementById('search-suggestions');
+    searchInput.addEventListener('input', function() {
+        const val = this.value.toLowerCase();
+        if (!val) { suggestionBox.style.display = 'none'; return; }
+        const filtered = suggestions.filter(s => s.toLowerCase().includes(val));
+        if (filtered.length === 0) { suggestionBox.style.display = 'none'; return; }
+        suggestionBox.innerHTML = filtered.map(s => `<div style='padding:0.6rem 1rem;cursor:pointer;' onclick='searchInput.value="${s}";suggestionBox.style.display="none";'>${s}</div>`).join('');
+        suggestionBox.style.display = 'block';
+    });
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !suggestionBox.contains(e.target)) {
+            suggestionBox.style.display = 'none';
+        }
+    });
+    // Sepet ve favori işlemleri
+    function getCart() {
+        return JSON.parse(localStorage.getItem('cart') || '{}');
+    }
+    function setCart(cart) {
+        localStorage.setItem('cart', JSON.stringify(cart));
+    }
+    function updateCartCount() {
+        const cart = getCart();
+        let count = 0;
+        for(const k in cart) count += cart[k].qty;
+        document.getElementById('cartCount').textContent = count;
+    }
+    function addToCart(productId, name, price) {
+        const cart = getCart();
+        if(!cart[productId]) cart[productId] = {name, price, qty: 0};
+        cart[productId].qty++;
+        setCart(cart);
+        updateCartCount();
+        showPopup('Ürün sepete eklendi!');
+    }
+    window.onload = function() {
+        updateCartCount();
+        // Sepete Ekle butonları
+        document.querySelectorAll('.product-card form').forEach(form => {
+            form.onsubmit = function(e) {
+                e.preventDefault();
+                const card = form.closest('.product-card');
+                const productId = card.querySelector('.btn.fav').getAttribute('onclick').match(/\d+/)[0];
+                const name = card.querySelector('.product-title').textContent;
+                const price = card.querySelector('.product-price').textContent;
+                addToCart(productId, name, price);
+            };
+        });
+        // Favori butonları
+        document.querySelectorAll('.btn.fav').forEach(btn => {
+            const productId = btn.getAttribute('onclick').match(/\d+/)[0];
+            if(getFavorites().includes(productId)) btn.classList.add('active');
+            btn.onclick = function(e) {
+                e.preventDefault();
+                toggleFavorite(productId, btn);
+            };
+        });
+        // Arama barı
+        document.getElementById('searchBtn').onclick = function() {
+            const val = document.getElementById('searchInput').value.trim();
+            if(!val) { return; }
+            window.location.href = '/search?q=' + encodeURIComponent(val);
+        };
+        document.getElementById('searchInput').addEventListener('keydown', function(e){
+            if(e.key === 'Enter') {
+                const val = document.getElementById('searchInput').value.trim();
+                if(!val) { return; }
+                window.location.href = '/search?q=' + encodeURIComponent(val);
+            }
+        });
+    };
+    function getFavorites() {
+        return JSON.parse(localStorage.getItem('favorites') || '[]');
+    }
+    function setFavorites(favs) {
+        localStorage.setItem('favorites', JSON.stringify(favs));
+    }
+    function toggleFavorite(productId, btn) {
+        let favs = getFavorites();
+        if(favs.includes(productId)) {
+            favs = favs.filter(f => f !== productId);
+            btn.classList.remove('active');
+            btn.querySelector('i').classList.remove('fa-solid');
+            btn.querySelector('i').classList.add('fa-regular');
+            showPopup('Favorilerden çıkarıldı');
+        } else {
+            favs.push(productId);
+            btn.classList.add('active');
+            btn.querySelector('i').classList.remove('fa-regular');
+            btn.querySelector('i').classList.add('fa-solid');
+            showPopup('Favorilere eklendi!');
+        }
+        setFavorites(favs);
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        const accountBtn = document.getElementById('accountBtn');
+        const accountDropdown = document.getElementById('accountDropdown');
+        if(accountBtn && accountDropdown) {
+            accountBtn.onclick = function(e) {
+                e.stopPropagation();
+                accountDropdown.style.display = accountDropdown.style.display === 'block' ? 'none' : 'block';
+            };
+            document.addEventListener('click', function(e) {
+                if(!accountDropdown.contains(e.target) && e.target !== accountBtn) {
+                    accountDropdown.style.display = 'none';
+                }
+            });
+        }
+        // Favori kalp ikonlarını doldur
+        var favs = JSON.parse(localStorage.getItem('favorites') || '[]');
+        document.querySelectorAll('.product-card').forEach(function(card) {
+            var pid = card.getAttribute('data-product-id');
+            if(favs.includes(String(pid))) {
+                var btn = card.querySelector('.favorite-btn');
+                btn.classList.add('active');
+                btn.querySelector('i').classList.remove('fa-regular');
+                btn.querySelector('i').classList.add('fa-solid');
+            }
+        });
+    });
+    </script>
+</body>
+</html> 

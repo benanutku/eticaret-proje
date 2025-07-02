@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ product.name }} | megapazar</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body>
+    <!-- Sabit Navbar -->
+    <div class="header">
+        <div class="logo" onclick="window.location.href='{{ url_for('main.index') }}'">megapazar</div>
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Ürün veya kategori ara..." autocomplete="off">
+            <span class="search-icon" id="searchBtn"><i class="fas fa-search"></i></span>
+        </div>
+        <div class="header-actions">
+            {% if current_user.is_authenticated %}
+                <button class="login-btn" onclick="window.location.href='{{ url_for('main.account') }}'">Hesabım</button>
+            {% else %}
+                <button class="login-btn" onclick="window.location.href='{{ url_for('main.login') }}'">Giriş Yap / Kayıt Ol</button>
+            {% endif %}
+            <button class="icon-btn" title="Favorilerim" onclick="window.location.href='{{ url_for('main.favorites') }}'"><i class="fa-regular fa-heart"></i></button>
+            <button class="icon-btn" title="Sepetim" onclick="window.location.href='{{ url_for('main.cart') }}'">
+                <i class="fa-solid fa-basket-shopping"></i>
+                <span class="cart-count" id="cartCount">0</span>
+            </button>
+        </div>
+    </div>
+    <!-- Ürün Detay İçeriği -->
+    <div class="product-detail-container">
+        <div class="product-detail-gallery-block">
+            <div class="product-thumbnails-vertical">
+                {% for img in images %}
+                <img src="{{ img }}" alt="{{ product.name }}" class="thumb-img{% if loop.first %} active{% endif %}" onclick="setMainImg(this.src, this)">
+                {% endfor %}
+            </div>
+            <div class="product-main-image-large">
+                <img id="mainImg" src="{{ images[0] if images else product.image_url }}" alt="{{ product.name }}">
+            </div>
+        </div>
+        <div class="product-detail-info-block">
+            <h1 class="product-detail-title">{{ product.name }}</h1>
+            <div class="product-detail-price">{{ '%.2f' % (product.price / 100) }} TL</div>
+            <div class="product-detail-actions">
+                <button class="btn detail-add-to-cart" onclick="addToCart({{ product.id }}, '{{ product.name }}', {{ product.price }})">
+                    <i class="fa-solid fa-cart-plus"></i> Sepete Ekle
+                </button>
+                <button class="btn detail-favorite-btn" onclick="toggleFavorite({{ product.id }}, this)">
+                    <i class="fa-regular fa-heart"></i>
+                </button>
+            </div>
+            <div class="product-detail-desc-box">{{ product.description }}</div>
+        </div>
+    </div>
+    <div class="popup" id="popup"></div>
+
+    <!-- Benzer Ürünler, Çok Satanlar, Yeni Gelenler -->
+    <div class="product-extra-sections">
+        <div class="product-section">
+            <div class="product-section-title">Benzer Ürünler</div>
+            <div class="product-scroll-row">
+                {% for p in similar_products %}
+                <div class="mini-product-card">
+                    <a href="{{ url_for('main.product_detail', id=p.id) }}" class="mini-product-img-link">
+                        <img src="{{ p.image_url }}" alt="{{ p.name }}">
+                    </a>
+                    <a href="{{ url_for('main.product_detail', id=p.id) }}" class="mini-product-title">{{ p.name }}</a>
+                    <div class="mini-product-price">{{ '%.2f' % (p.price / 100) }} TL</div>
+                    <div class="mini-product-actions">
+                        <button class="mini-add-to-cart-btn" onclick="addToCart({{ p.id }}, '{{ p.name }}', {{ p.price }})">
+                            <i class="fa-solid fa-cart-plus"></i>
+                        </button>
+                        <button class="mini-favorite-btn" onclick="toggleFavorite({{ p.id }}, this)">
+                            <i class="fa-regular fa-heart"></i>
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="product-section">
+            <div class="product-section-title">Çok Satanlar</div>
+            <div class="product-scroll-row">
+                {% for p in best_sellers %}
+                <div class="mini-product-card">
+                    <a href="{{ url_for('main.product_detail', id=p.id) }}" class="mini-product-img-link">
+                        <img src="{{ p.image_url }}" alt="{{ p.name }}">
+                    </a>
+                    <a href="{{ url_for('main.product_detail', id=p.id) }}" class="mini-product-title">{{ p.name }}</a>
+                    <div class="mini-product-price">{{ '%.2f' % (p.price / 100) }} TL</div>
+                    <div class="mini-product-actions">
+                        <button class="mini-add-to-cart-btn" onclick="addToCart({{ p.id }}, '{{ p.name }}', {{ p.price }})">
+                            <i class="fa-solid fa-cart-plus"></i>
+                        </button>
+                        <button class="mini-favorite-btn" onclick="toggleFavorite({{ p.id }}, this)">
+                            <i class="fa-regular fa-heart"></i>
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="product-section">
+            <div class="product-section-title">Yeni Gelenler</div>
+            <div class="product-scroll-row">
+                {% for p in new_arrivals %}
+                <div class="mini-product-card">
+                    <a href="{{ url_for('main.product_detail', id=p.id) }}" class="mini-product-img-link">
+                        <img src="{{ p.image_url }}" alt="{{ p.name }}">
+                    </a>
+                    <a href="{{ url_for('main.product_detail', id=p.id) }}" class="mini-product-title">{{ p.name }}</a>
+                    <div class="mini-product-price">{{ '%.2f' % (p.price / 100) }} TL</div>
+                    <div class="mini-product-actions">
+                        <button class="mini-add-to-cart-btn" onclick="addToCart({{ p.id }}, '{{ p.name }}', {{ p.price }})">
+                            <i class="fa-solid fa-cart-plus"></i>
+                        </button>
+                        <button class="mini-favorite-btn" onclick="toggleFavorite({{ p.id }}, this)">
+                            <i class="fa-regular fa-heart"></i>
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <script>
+    function setMainImg(src, thumb) {
+        document.getElementById('mainImg').src = src;
+        document.querySelectorAll('.thumb-img').forEach(function(img) {
+            img.classList.remove('active');
+        });
+        if(thumb) thumb.classList.add('active');
+    }
+    function getCart() {
+        return JSON.parse(localStorage.getItem('cart') || '{}');
+    }
+    function setCart(cart) {
+        localStorage.setItem('cart', JSON.stringify(cart));
+    }
+    function addToCart(id, name, price) {
+        const cart = getCart();
+        if(!cart[id]) cart[id] = {name, price, qty: 0};
+        cart[id].qty++;
+        setCart(cart);
+        showPopup('Ürün sepete eklendi!');
+    }
+    function showPopup(msg) {
+        const popup = document.getElementById('popup');
+        popup.textContent = msg;
+        popup.classList.add('show');
+        setTimeout(() => popup.classList.remove('show'), 2000);
+    }
+    function getFavorites() {
+        return JSON.parse(localStorage.getItem('favorites') || '[]');
+    }
+    function setFavorites(favs) {
+        localStorage.setItem('favorites', JSON.stringify(favs));
+    }
+    function toggleFavorite(id, btn) {
+        let favs = getFavorites();
+        if(favs.includes(id)) {
+            favs = favs.filter(f => f !== id);
+            btn.classList.remove('active');
+            btn.querySelector('i').classList.remove('fa-solid');
+            btn.querySelector('i').classList.add('fa-regular');
+            showPopup('Favorilerden çıkarıldı');
+        } else {
+            favs.push(id);
+            btn.classList.add('active');
+            btn.querySelector('i').classList.remove('fa-regular');
+            btn.querySelector('i').classList.add('fa-solid');
+            showPopup('Favorilere eklendi!');
+        }
+        setFavorites(favs);
+    }
+    // Favori butonlarının başlangıç durumu (mini kartlar için)
+    document.addEventListener('DOMContentLoaded', function() {
+        var favs = getFavorites();
+        document.querySelectorAll('.mini-favorite-btn').forEach(function(btn) {
+            var pid = parseInt(btn.closest('.mini-product-card').querySelector('.mini-add-to-cart-btn').getAttribute('onclick').match(/\d+/)[0]);
+            if(favs.includes(pid)) {
+                btn.classList.add('active');
+                btn.querySelector('i').classList.remove('fa-regular');
+                btn.querySelector('i').classList.add('fa-solid');
+            }
+        });
+    });
+    </script>
+</body>
+</html> 

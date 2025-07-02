@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Arama Sonuçları | megapazar</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body style="background:#fafbfc;">
+    <div class="header">
+        <div class="logo" onclick="window.location.href='{{ url_for('main.index') }}'">megapazar</div>
+    </div>
+    <div style="max-width:900px;margin:2rem auto;">
+        <h2 style="color:#e53935;text-align:center;">Arama Sonuçları</h2>
+        <div class="search-bar" style="margin:2rem auto;max-width:400px;">
+            <input type="text" id="searchInput" placeholder="Ürün veya kategori ara..." autocomplete="off">
+            <span class="search-icon" id="searchBtn"><i class="fas fa-search"></i></span>
+            <div id="search-suggestions" style="display:none;position:absolute;top:110%;left:0;width:100%;background:#fff;border-radius:0 0 16px 16px;box-shadow:0 4px 16px rgba(0,0,0,0.07);z-index:10;"></div>
+        </div>
+        <div id="searchResults" class="product-row"></div>
+    </div>
+    <div class="popup" id="popup"></div>
+    <script>
+    let allProducts = [];
+    fetch('/api/products').then(res=>res.json()).then(data=>{allProducts=data;});
+    const searchInput = document.getElementById('searchInput');
+    const suggestionBox = document.getElementById('search-suggestions');
+    const searchBtn = document.getElementById('searchBtn');
+    function showPopup(msg) {
+        const popup = document.getElementById('popup');
+        popup.textContent = msg;
+        popup.classList.add('show');
+        setTimeout(() => popup.classList.remove('show'), 2000);
+    }
+    function renderResults(list) {
+        const resDiv = document.getElementById('searchResults');
+        resDiv.innerHTML = '';
+        if(list.length === 0) {
+            resDiv.innerHTML = '<div style="text-align:center;color:#aaa;">Sonuç bulunamadı.</div>';
+            return;
+        }
+        list.forEach(p => {
+            resDiv.innerHTML += `
+            <div class='product-card'>
+                <img src='${p.image_url}' alt='${p.name}'>
+                <div class='product-title'>${p.name}</div>
+                <div class='product-desc'>${p.description}</div>
+                <div class='product-price'>${p.price/100} TL</div>
+                <div class='product-actions'>
+                    <button class='btn' onclick='addToCart(${p.id}, "${p.name}", "${p.price}")'>Sepete Ekle</button>
+                    <button class='btn fav' onclick='addToFavorites(${p.id})'><i class='fa-regular fa-heart'></i></button>
+                </div>
+            </div>`;
+        });
+    }
+    function doSearch() {
+        const val = searchInput.value.trim().toLowerCase();
+        if(!val) { showPopup('Lütfen arama terimi girin!'); return; }
+        const filtered = allProducts.filter(p => p.name.toLowerCase().includes(val) || p.description.toLowerCase().includes(val));
+        renderResults(filtered);
+    }
+    searchBtn.onclick = doSearch;
+    searchInput.addEventListener('keydown', function(e){ if(e.key==='Enter') doSearch(); });
+    searchInput.addEventListener('input', function() {
+        const val = this.value.toLowerCase();
+        if (!val) { suggestionBox.style.display = 'none'; return; }
+        const filtered = allProducts.filter(p => p.name.toLowerCase().includes(val));
+        if (filtered.length === 0) { suggestionBox.style.display = 'none'; return; }
+        suggestionBox.innerHTML = filtered.map(p => `<div style='padding:0.6rem 1rem;cursor:pointer;' onclick='searchInput.value="${p.name}";suggestionBox.style.display="none";'>${p.name}</div>`).join('');
+        suggestionBox.style.display = 'block';
+    });
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !suggestionBox.contains(e.target)) {
+            suggestionBox.style.display = 'none';
+        }
+    });
+    // Sepet ve favori işlemleri (demo)
+    function getCart() { return JSON.parse(localStorage.getItem('cart') || '{}'); }
+    function setCart(cart) { localStorage.setItem('cart', JSON.stringify(cart)); }
+    function addToCart(id, name, price) {
+        const cart = getCart();
+        if(!cart[id]) cart[id] = {name, price, qty: 0};
+        cart[id].qty++;
+        setCart(cart);
+        showPopup('Ürün sepete eklendi!');
+    }
+    function getFavorites() { return JSON.parse(localStorage.getItem('favorites') || '[]'); }
+    function setFavorites(favs) { localStorage.setItem('favorites', JSON.stringify(favs)); }
+    function addToFavorites(id) {
+        let favs = getFavorites();
+        if(!favs.includes(id)) { favs.push(id); setFavorites(favs); showPopup('Favorilere eklendi!'); }
+    }
+    // İlk yüklemede query string ile arama
+    window.onload = function() {
+        const params = new URLSearchParams(window.location.search);
+        if(params.has('q')) {
+            searchInput.value = params.get('q');
+            doSearch();
+        }
+    };
+    </script>
+</body>
+</html> 

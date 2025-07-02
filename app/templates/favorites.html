@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Favorilerim | megapazar</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body style="background:#fafbfc;">
+    <div class="header">
+        <div class="logo" onclick="window.location.href='{{ url_for('main.index') }}'">megapazar</div>
+    </div>
+    <div style="max-width:800px;margin:2rem auto;">
+        <h2 style="color:#e53935;text-align:center;">Favorilerim</h2>
+        <div id="favList" class="product-row"></div>
+    </div>
+    <div class="popup" id="popup"></div>
+    <script>
+    function getFavorites() {
+        return JSON.parse(localStorage.getItem('favorites') || '[]');
+    }
+    function getCart() {
+        return JSON.parse(localStorage.getItem('cart') || '{}');
+    }
+    function setCart(cart) {
+        localStorage.setItem('cart', JSON.stringify(cart));
+    }
+    function showPopup(msg) {
+        const popup = document.getElementById('popup');
+        popup.textContent = msg;
+        popup.classList.add('show');
+        setTimeout(() => popup.classList.remove('show'), 2000);
+    }
+    function removeFavorite(id) {
+        let favs = getFavorites();
+        favs = favs.filter(f => f !== id);
+        localStorage.setItem('favorites', JSON.stringify(favs));
+        renderFavs();
+        showPopup('Favorilerden çıkarıldı');
+    }
+    function addToCart(id, name, price) {
+        const cart = getCart();
+        if(!cart[id]) cart[id] = {name, price, qty: 0};
+        cart[id].qty++;
+        setCart(cart);
+        showPopup('Ürün sepete eklendi!');
+    }
+    function renderFavs() {
+        const favs = getFavorites();
+        const favList = document.getElementById('favList');
+        favList.innerHTML = '';
+        if(favs.length === 0) {
+            favList.innerHTML = '<div style="text-align:center;color:#aaa;">Favori ürününüz yok.</div>';
+            return;
+        }
+        fetch('/api/products')
+            .then(res => res.json())
+            .then(products => {
+                favs.forEach(id => {
+                    const p = products.find(pr => pr.id == id);
+                    if(!p) return;
+                    favList.innerHTML += `
+<div class='product-card'>
+  <div class='product-image-container'>
+    <a href='/product/${p.id}'><img src='${p.image_url}' alt='${p.name}'></a>
+  </div>
+  <a href='/product/${p.id}' style='text-decoration:none;color:inherit;'>
+    <div class='product-title'>${p.name}</div>
+  </a>
+  <div class='product-desc'>${p.description}</div>
+  <div class='product-price'>${(p.price/100).toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} TL</div>
+  <div class='product-actions'>
+    <button class='btn fav-add-to-cart-btn' onclick='addToCart(${p.id}, "${p.name}", "${p.price}")'><i class="fa-solid fa-cart-plus"></i> Sepete Ekle</button>
+    <button class='btn fav-favorite-btn' onclick='removeFavorite("${p.id}")' title='Favorilerden çıkar'><i class='fa-solid fa-xmark'></i></button>
+  </div>
+</div>`;
+                });
+            });
+    }
+    renderFavs();
+    </script>
+</body>
+</html> 

@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - SECRET_KEY=supersecretkey123
+      - STRIPE_PUBLIC_KEY=pk_test_51RaD6hPfc739mjOCOviANETFblr3KG3w5mxUdclmKpp10IbhUcrZ6ZM5JFhun41gZFq5SglGqhQZODvimUs4iU96005582w92m
+      - STRIPE_SECRET_KEY=sk_test_51RaD6hPfc739mjOCFi4pDosRbmpSgAOhUauqzIVyOgtQz1fOuiMZXe3IbMVDaE4jqgil9Bi8lfCdcdvs7yw5lAkT00Zb6jecuj
+    volumes:
+      - .:/app
+    depends_on: [] 

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Giriş Yap | megapazar</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+    .auth-container { display: flex; min-height: 100vh; }
+    .auth-form { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #fafbfc; }
+    .auth-form-inner { width: 100%; max-width: 400px; background: #fff; border-radius: 18px; box-shadow: 0 2px 16px rgba(0,0,0,0.07); padding: 2.5rem 2rem 2rem 2rem; }
+    .auth-side { flex: 1; background: linear-gradient(135deg, #e53935 0%, #ffb300 100%); color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
+    .auth-logo { font-size: 2.5rem; font-weight: 700; margin-bottom: 1.5rem; letter-spacing: 1px; }
+    .auth-side-desc { font-size: 1.2rem; max-width: 320px; text-align: center; }
+    @media (max-width: 900px) { .auth-container { flex-direction: column; } .auth-side { min-height: 180px; padding: 2rem 0; } }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-form">
+            <div class="auth-form-inner">
+                <div class="logo" style="text-align:center;margin-bottom:1.5rem;cursor:pointer;color:#e53935;font-size:2rem;" onclick="window.location.href='{{ url_for('main.index') }}'">megapazar</div>
+                <h2 style="text-align:center;">Giriş Yap</h2>
+                <form method="POST" action="{{ url_for('main.login') }}">
+                    <input type="email" name="email" placeholder="E-posta" required style="width:100%;margin-bottom:1rem;padding:0.6rem 1rem;border-radius:8px;border:1px solid #eee;">
+                    <input type="password" name="password" placeholder="Şifre" required style="width:100%;margin-bottom:1rem;padding:0.6rem 1rem;border-radius:8px;border:1px solid #eee;">
+                    <button type="submit" class="btn" style="width:100%;margin-bottom:1rem;">Giriş Yap</button>
+                </form>
+                <div style="text-align:center;font-size:0.97rem;">Hesabın yok mu? <a href="{{ url_for('main.register') }}" style="color:#e53935;">Üye Ol</a></div>
+            </div>
+        </div>
+        <div class="auth-side">
+            <div class="auth-logo">megapazar</div>
+            <div class="auth-side-desc">Türkiye'nin en yenilikçi moda ve alışveriş platformuna hoş geldiniz! Hemen giriş yap, fırsatları kaçırma.</div>
+        </div>
+    </div>
+    <script>
+    </script>
+</body>
+</html> 

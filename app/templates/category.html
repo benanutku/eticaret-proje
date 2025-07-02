@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ cat_name }} | megapazar</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body style="background:#fafbfc;">
+    <div class="header">
+        <div class="logo" onclick="window.location.href='{{ url_for('main.index') }}'">megapazar</div>
+    </div>
+    <div style="max-width:900px;margin:2rem auto;">
+        <h2 style="color:#e53935;text-align:center;">{{ cat_name }}</h2>
+        <div class="product-row">
+            {% if products and products|length > 0 %}
+                {% for p in products %}
+                <div class="product-card" data-product-id="{{ p.id }}">
+                    <div class="product-image-container">
+                        <a href="/product/{{ p.id }}">
+                            <img src="{{ p.image_url if p.image_url else '/static/img/default.jpg' }}" alt="{{ p.name }}">
+                        </a>
+                    </div>
+                    <a href="/product/{{ p.id }}" style="text-decoration:none;color:inherit;">
+                        <h3 class="product-name">{{ p.name }}</h3>
+                    </a>
+                    <p class="product-price">{{ '%.2f' % (p.price / 100) }} TL</p>
+                    <div class="product-actions">
+                        <button class="add-to-cart-btn" onclick="addToCart({{ p.id }}, '{{ p.name }}', {{ p.price }})">Sepete Ekle</button>
+                        <button class="favorite-btn" onclick="toggleFavorite({{ p.id }}, this)"><i class="fa-regular fa-heart"></i></button>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div style="text-align:center;color:#aaa;">Bu kategoriye ait ürün yok.</div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="popup" id="popup"></div>
+    <script>
+    function showPopup(msg) {
+        const popup = document.getElementById('popup');
+        popup.textContent = msg;
+        popup.classList.add('show');
+        setTimeout(() => popup.classList.remove('show'), 2000);
+    }
+    function getCart() { return JSON.parse(localStorage.getItem('cart') || '{}'); }
+    function setCart(cart) { localStorage.setItem('cart', JSON.stringify(cart)); }
+    function addToCart(id, name, price) {
+        const cart = getCart();
+        if(!cart[id]) cart[id] = {name, price, qty: 0};
+        cart[id].qty++;
+        setCart(cart);
+        showPopup('Ürün sepete eklendi!');
+    }
+    function getFavorites() { return JSON.parse(localStorage.getItem('favorites') || '[]'); }
+    function setFavorites(favs) { localStorage.setItem('favorites', JSON.stringify(favs)); }
+    function addToFavorites(id) {
+        let favs = getFavorites();
+        if(!favs.includes(id)) { favs.push(id); setFavorites(favs); showPopup('Favorilere eklendi!'); }
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        // Favori kalp ikonlarını doldur
+        var favs = JSON.parse(localStorage.getItem('favorites') || '[]');
+        document.querySelectorAll('.product-card').forEach(function(card) {
+            var pid = card.getAttribute('data-product-id');
+            if(favs.includes(String(pid))) {
+                var btn = card.querySelector('.favorite-btn');
+                btn.classList.add('active');
+                btn.querySelector('i').classList.remove('fa-regular');
+                btn.querySelector('i').classList.add('fa-solid');
+            }
+        });
+    });
+    </script>
+</body>
+</html> 

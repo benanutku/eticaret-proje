@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ camp_name }} | megapazar</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body style="background:#fafbfc;">
+    <div class="header">
+        <div class="logo" onclick="window.location.href='{{ url_for('main.index') }}'">megapazar</div>
+    </div>
+    <div style="max-width:900px;margin:2rem auto;">
+        <h2 style="color:#e53935;text-align:center;">{{ camp_name|capitalize }} Kampanyası</h2>
+        <div id="campProducts" class="product-row"></div>
+    </div>
+    <div class="popup" id="popup"></div>
+    <script>
+    let allProducts = [];
+    fetch('/api/products').then(res=>res.json()).then(data=>{
+        allProducts=data;
+        renderCamp();
+    });
+    function renderCamp() {
+        const camp = '{{ camp_name }}'.toLowerCase();
+        // Demo: kampanya adına göre ürün filtrele (ör: indirimli ürünler)
+        let filtered = allProducts;
+        if(camp.includes('indirim')) filtered = allProducts.filter(p => p.price < 50000);
+        if(camp.includes('kargo')) filtered = allProducts.filter(p => p.price > 30000);
+        if(filtered.length === 0) {
+            document.getElementById('campProducts').innerHTML = '<div style="text-align:center;color:#aaa;">Bu kampanyaya ait ürün yok.</div>';
+            return;
+        }
+        const div = document.getElementById('campProducts');
+        div.innerHTML = '';
+        filtered.forEach(p => {
+            div.innerHTML += `
+<div class='product-card'>
+  <div class='product-image-container'>
+    <a href='/product/${p.id}'><img src='${p.image_url}' alt='${p.name}'></a>
+  </div>
+  <a href='/product/${p.id}' style='text-decoration:none;color:inherit;'>
+    <div class='product-title'>${p.name}</div>
+  </a>
+  <div class='product-desc'>${p.description}</div>
+  <div class='product-price'>${p.price/100} TL</div>
+  <div class='product-actions'>
+    <button class='btn campaign-add-to-cart-btn' onclick='addToCart(${p.id}, "${p.name}", "${p.price}")'><i class="fa-solid fa-cart-plus"></i> Sepete Ekle</button>
+    <button class='btn campaign-favorite-btn' onclick='addToFavorites(${p.id})'><i class='fa-regular fa-heart'></i></button>
+  </div>
+</div>`;
+        });
+    }
+    function showPopup(msg) {
+        const popup = document.getElementById('popup');
+        popup.textContent = msg;
+        popup.classList.add('show');
+        setTimeout(() => popup.classList.remove('show'), 2000);
+    }
+    function getCart() { return JSON.parse(localStorage.getItem('cart') || '{}'); }
+    function setCart(cart) { localStorage.setItem('cart', JSON.stringify(cart)); }
+    function addToCart(id, name, price) {
+        const cart = getCart();
+        if(!cart[id]) cart[id] = {name, price, qty: 0};
+        cart[id].qty++;
+        setCart(cart);
+        showPopup('Ürün sepete eklendi!');
+    }
+    function getFavorites() { return JSON.parse(localStorage.getItem('favorites') || '[]'); }
+    function setFavorites(favs) { localStorage.setItem('favorites', JSON.stringify(favs)); }
+    function addToFavorites(id) {
+        let favs = getFavorites();
+        if(!favs.includes(id)) { favs.push(id); setFavorites(favs); showPopup('Favorilere eklendi!'); }
+    }
+    </script>
+</body>
+</html> 

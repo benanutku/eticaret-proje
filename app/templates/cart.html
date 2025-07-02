@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Sepetim | megapazar</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body style="background:#fafbfc;">
+    <div class="header">
+        <div class="logo" onclick="window.location.href='{{ url_for('main.index') }}'">megapazar</div>
+    </div>
+    <div style="max-width:900px;margin:2rem auto;">
+        <h2 style="color:#e53935;text-align:center;">Sepetim</h2>
+        <div id="cartList"></div>
+        <div style="text-align:right;margin-top:1.5rem;">
+            <span id="totalPrice" style="font-size:1.2rem;font-weight:600;color:#e53935;"></span>
+            <button class="btn checkout-btn" id="checkoutBtn"><i class="fa-solid fa-credit-card"></i> Satın Al</button>
+        </div>
+    </div>
+    <div class="popup" id="popup"></div>
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+    function getCart() {
+        return JSON.parse(localStorage.getItem('cart') || '{}');
+    }
+    function setCart(cart) {
+        localStorage.setItem('cart', JSON.stringify(cart));
+    }
+    function showPopup(msg) {
+        const popup = document.getElementById('popup');
+        popup.textContent = msg;
+        popup.classList.add('show');
+        setTimeout(() => popup.classList.remove('show'), 2000);
+    }
+    function renderCart() {
+        const cart = getCart();
+        const cartList = document.getElementById('cartList');
+        let total = 0;
+        cartList.innerHTML = '';
+        fetch('/api/products')
+            .then(res => res.json())
+            .then(products => {
+                let hasItem = false;
+                for(const id in cart) {
+                    const p = products.find(pr => pr.id == id);
+                    if(!p) continue;
+                    hasItem = true;
+                    total += p.price * cart[id].qty;
+                    cartList.innerHTML += `
+                    <div class='product-card cart-product-card'>
+                        <div class='cart-img-container'>
+                            <a href='/product/${p.id}'><img src='${p.image_url}' alt='${p.name}'></a>
+                        </div>
+                        <div class='cart-product-info'>
+                            <a href='/product/${p.id}' style='text-decoration:none;color:inherit;'>
+                                <div class='product-title'>${p.name}</div>
+                            </a>
+                            <div class='product-desc'>${p.description}</div>
+                            <div class='product-price'>${(p.price/100).toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} TL</div>
+                        </div>
+                        <div class='cart-qty-controls'>
+                            <button class='btn qty-btn' onclick='changeQty(${p.id},-1)'><i class='fa-solid fa-minus'></i></button>
+                            <span class='cart-qty'>${cart[id].qty}</span>
+                            <button class='btn qty-btn' onclick='changeQty(${p.id},1)'><i class='fa-solid fa-plus'></i></button>
+                        </div>
+                        <button class='btn fav cart-remove-btn' onclick='removeFromCart(${p.id})' title='Sepetten çıkar'><i class='fa-solid fa-trash'></i></button>
+                    </div>`;
+                }
+                if(!hasItem) cartList.innerHTML = '<div style="text-align:center;color:#aaa;">Sepetiniz boş.</div>';
+                document.getElementById('totalPrice').textContent = total ? 'Toplam: ' + (total/100).toFixed(2) + ' TL' : '';
+            });
+    }
+    function changeQty(id, delta) {
+        const cart = getCart();
+        if(!cart[id]) return;
+        cart[id].qty += delta;
+        if(cart[id].qty <= 0) delete cart[id];
+        setCart(cart);
+        renderCart();
+    }
+    function removeFromCart(id) {
+        const cart = getCart();
+        delete cart[id];
+        setCart(cart);
+        renderCart();
+        showPopup('Ürün sepetten çıkarıldı');
+    }
+    document.getElementById('checkoutBtn').onclick = async function() {
+        const cart = getCart();
+        if(Object.keys(cart).length === 0) {
+            showPopup('Sepetiniz boş!');
+            return;
+        }
+        // Sepet verisini backend'e gönder
+        const response = await fetch('/create-checkout-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cart })
+        });
+        const data = await response.json();
+        if(data.sessionId) {
+            const stripe = Stripe('pk_test_51RaD6hPfc739mjOCOviANETFblr3KG3w5mxUdclmKpp10IbhUcrZ6ZM5JFhun41gZFq5SglGqhQZODvimUs4iU96005582w92m');
+            stripe.redirectToCheckout({ sessionId: data.sessionId });
+        } else {
+            showPopup('Stripe oturumu başlatılamadı!');
+        }
+    };
+    renderCart();
+    </script>
+</body>
+</html> 
