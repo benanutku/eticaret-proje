@@ -22,6 +22,7 @@
     <div class="popup" id="popup"></div>
     <script src="https://js.stripe.com/v3/"></script>
     <script>
+    const userIsAuthenticated = {{ 'true' if current_user.is_authenticated else 'false' }};
     function getCart() {
         return JSON.parse(localStorage.getItem('cart') || '{}');
     }
@@ -88,6 +89,10 @@
         showPopup('Ürün sepetten çıkarıldı');
     }
     document.getElementById('checkoutBtn').onclick = async function() {
+        if(!userIsAuthenticated) {
+            window.location.href = '/login';
+            return;
+        }
         const cart = getCart();
         if(Object.keys(cart).length === 0) {
             showPopup('Sepetiniz boş!');

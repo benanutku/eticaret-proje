@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}megapazar{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="logo" onclick="window.location.href='{{ url_for('main.index') }}'">megapazar</div>
+        <div class="search-bar">
+            <form method="GET" action="{{ url_for('main.search') }}" style="display:flex;align-items:center;">
+                <input type="text" name="q" id="searchInput" placeholder="Ürün veya kategori ara..." autocomplete="off" value="{{ q if q is defined else '' }}">
+                <button type="submit" class="search-icon" id="searchBtn"><i class="fas fa-search"></i></button>
+            </form>
+            <div id="search-suggestions" style="display:none;position:absolute;top:110%;left:0;width:100%;background:#fff;border-radius:0 0 16px 16px;box-shadow:0 4px 16px rgba(0,0,0,0.07);z-index:10;"></div>
+        </div>
+        <div class="header-actions">
+        {% if current_user.is_authenticated %}
+            <div class="account-menu" style="position:relative;">
+                <button class="login-btn" id="accountBtn">Hesabım <i class="fa-solid fa-chevron-down" style="font-size:0.9em;"></i></button>
+                <div class="account-dropdown" id="accountDropdown" style="display:none;position:absolute;top:110%;right:0;background:#fff;box-shadow:0 4px 16px rgba(0,0,0,0.09);border-radius:14px;min-width:180px;z-index:100;">
+                    <a href="/my-orders" class="dropdown-item">Siparişlerim</a>
+                    <a href="/my-profile" class="dropdown-item">Kullanıcı Bilgilerim</a>
+                    <a href="/logout" class="dropdown-item" style="color:#e53935;">Çıkış Yap</a>
+                </div>
+            </div>
+        {% else %}
+            <button class="login-btn" onclick="window.location.href='{{ url_for('main.login') }}'">Giriş Yap / Kayıt Ol</button>
+        {% endif %}
+            <button class="icon-btn" title="Favorilerim" onclick="window.location.href='{{ url_for('main.favorites') }}'"><i class="fa-regular fa-heart"></i></button>
+            <button class="icon-btn" title="Sepetim" onclick="window.location.href='{{ url_for('main.cart') }}'">
+                <i class="fa-solid fa-basket-shopping"></i>
+                <span class="cart-count" id="cartCount">0</span>
+            </button>
+        </div>
+    </div>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-item" onclick="window.location.href='{{ url_for('main.category', cat_name='Giyim') }}'">Giyim</div>
+        <div class="nav-item" onclick="window.location.href='{{ url_for('main.category', cat_name='Ayakkabı') }}'">Ayakkabı</div>
+        <div class="nav-item" onclick="window.location.href='{{ url_for('main.category', cat_name='Aksesuar & Çanta') }}'">Aksesuar & Çanta</div>
+        <div class="nav-item" onclick="window.location.href='{{ url_for('main.category', cat_name='Ev & İç Giyim') }}'">Ev & İç Giyim</div>
+        <div class="nav-item" onclick="window.location.href='{{ url_for('main.category', cat_name='Kozmetik') }}'">Kozmetik</div>
+        <div class="nav-item" onclick="window.location.href='{{ url_for('main.category', cat_name='Spor & Outdoor') }}'">Spor & Outdoor</div>
+    </nav>
+    {% block content %}{% endblock %}
+    {% block scripts %}{% endblock %}
+</body>
+</html> 

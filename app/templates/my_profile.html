@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Kullanıcı Bilgilerim | megapazar</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+    .profile-container { max-width: 900px; margin: 3rem auto; display: flex; gap: 2.5rem; }
+    .profile-box { flex: 1; background: #fff; border-radius: 16px; box-shadow: 0 2px 16px rgba(0,0,0,0.07); padding: 2.5rem 2rem; }
+    .profile-title { color: #e53935; font-size: 1.5rem; font-weight: 700; text-align: left; margin-bottom: 1.5rem; }
+    .profile-label { color: #888; font-size: 1.05rem; margin-bottom: 0.2rem; }
+    .profile-value, .profile-input { font-size: 1.15rem; font-weight: 500; margin-bottom: 1.2rem; }
+    .profile-input, .profile-input[readonly] { width: 100%; padding: 0.7rem 1rem; border-radius: 8px; border: 1px solid #eee; margin-bottom: 1.2rem; background: #f7f8fa; }
+    .profile-input[readonly] { color: #aaa; background: #f3f3f3; cursor: not-allowed; }
+    .profile-btn { background: #e53935; color: #fff; border: none; border-radius: 8px; padding: 0.7rem 0; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: background 0.2s; width: 100%; box-shadow: 0 2px 8px rgba(229,57,53,0.07); margin-top: 0.5rem; }
+    .profile-btn:hover { background: #b71c1c; }
+    .profile-error { color: #e53935; font-size: 1rem; margin-bottom: 1rem; text-align: left; }
+    .profile-success { color: #43a047; font-size: 1rem; margin-bottom: 1rem; text-align: left; }
+    @media (max-width: 900px) { .profile-container { flex-direction: column; gap: 1.5rem; } }
+    </style>
+</head>
+<body style="background:#fafbfc;">
+    <div class="header">
+        <div class="logo" onclick="window.location.href='{{ url_for('main.index') }}'">megapazar</div>
+    </div>
+    <div class="profile-container">
+        <!-- Sol: Üyelik Bilgileri -->
+        <form class="profile-box" id="infoForm" method="POST" action="{{ url_for('main.my_profile') }}">
+            <div class="profile-title">Üyelik Bilgilerim</div>
+            <div class="profile-label">Ad</div>
+            <input type="text" name="first_name" class="profile-input" value="{{ user.first_name if user.first_name else '' }}" required>
+            <div class="profile-label">Soyad</div>
+            <input type="text" name="last_name" class="profile-input" value="{{ user.last_name if user.last_name else '' }}" required>
+            <div class="profile-label">E-posta</div>
+            <input type="email" class="profile-input" value="{{ user.email }}" readonly>
+            {% if info_success %}<div class="profile-success">{{ info_success }}</div>{% endif %}
+            {% if info_error %}<div class="profile-error">{{ info_error }}</div>{% endif %}
+            <button type="submit" class="profile-btn">Güncelle</button>
+        </form>
+        <!-- Sağ: Şifre Güncelleme -->
+        <form class="profile-box" id="passwordForm" method="POST" action="{{ url_for('main.my_profile') }}">
+            <div class="profile-title">Şifre Güncelleme</div>
+            <div class="profile-label">Şu Anki Şifre</div>
+            <input type="password" name="current_password" class="profile-input" required>
+            <div class="profile-label">Yeni Şifre</div>
+            <input type="password" name="new_password" class="profile-input" required>
+            <div class="profile-label">Yeni Şifre (Tekrar)</div>
+            <input type="password" name="new_password2" class="profile-input" required>
+            <div style="font-size:0.97rem;color:#888;margin-bottom:1rem;">Şifreniz <b>en az 8 karakter</b> olmalı. <b>1 büyük harf, 1 küçük harf ve rakam</b> içermelidir.</div>
+            {% if pass_success %}<div class="profile-success">{{ pass_success }}</div>{% endif %}
+            {% if pass_error %}<div class="profile-error">{{ pass_error }}</div>{% endif %}
+            <button type="submit" class="profile-btn">Güncelle</button>
+        </form>
+    </div>
+</body>
+</html> 

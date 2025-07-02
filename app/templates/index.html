@@ -36,8 +36,6 @@
             </button>
         </div>
     </div>
-    <!-- Login/Register Modal -->
-    <!-- Modal ve ilgili kodlar tamamen kaldırıldı -->
     <!-- Navbar -->
     <nav class="navbar">
         <div class="nav-item" onclick="window.location.href='{{ url_for('main.category', cat_name='Giyim') }}'">Giyim
@@ -145,22 +143,41 @@
     function addToFavorites(productId) {
         showPopup('Favorilere eklendi!');
     }
-    // Akıllı arama önerisi (demo)
-    const suggestions = ['Giyim', 'Ayakkabı', 'Aksesuar', 'Çanta', 'Kozmetik', 'Spor', 'Tişört', 'Sneaker', 'Çocuk'];
+    // Ürün isimleriyle autocomplete
+    let allProducts = [];
+    fetch('/api/products').then(res=>res.json()).then(data=>{allProducts=data;});
     const searchInput = document.getElementById('searchInput');
     const suggestionBox = document.getElementById('search-suggestions');
     searchInput.addEventListener('input', function() {
         const val = this.value.toLowerCase();
         if (!val) { suggestionBox.style.display = 'none'; return; }
-        const filtered = suggestions.filter(s => s.toLowerCase().includes(val));
+        const filtered = allProducts.filter(p => p.name.toLowerCase().includes(val));
         if (filtered.length === 0) { suggestionBox.style.display = 'none'; return; }
-        suggestionBox.innerHTML = filtered.map(s => `<div style='padding:0.6rem 1rem;cursor:pointer;' onclick='searchInput.value="${s}";suggestionBox.style.display="none";'>${s}</div>`).join('');
+        suggestionBox.innerHTML = filtered.map(p => `<div style='padding:0.6rem 1rem;cursor:pointer;' onclick='searchInput.value="${p.name}";suggestionBox.style.display="none";'>${p.name}</div>`).join('');
         suggestionBox.style.display = 'block';
     });
     document.addEventListener('click', function(e) {
         if (!searchInput.contains(e.target) && !suggestionBox.contains(e.target)) {
             suggestionBox.style.display = 'none';
         }
+    });
+    // Arama butonuna basınca ürünler yüklenmeden arama yapılmasın
+    function doSearch() {
+        const val = searchInput.value.trim();
+        if(!val) return;
+        if(allProducts.length === 0) {
+            fetch('/api/products').then(res=>res.json()).then(data=>{
+                allProducts = data;
+            }).finally(function() {
+                window.location.href = '/search?q=' + encodeURIComponent(val);
+            });
+        } else {
+            window.location.href = '/search?q=' + encodeURIComponent(val);
+        }
+    }
+    document.getElementById('searchBtn').onclick = doSearch;
+    searchInput.addEventListener('keydown', function(e){
+        if(e.key === 'Enter') doSearch();
     });
     // Sepet ve favori işlemleri
     function getCart() {
@@ -204,19 +221,6 @@
                 e.preventDefault();
                 toggleFavorite(productId, btn);
             };
-        });
-        // Arama barı
-        document.getElementById('searchBtn').onclick = function() {
-            const val = document.getElementById('searchInput').value.trim();
-            if(!val) { return; }
-            window.location.href = '/search?q=' + encodeURIComponent(val);
-        };
-        document.getElementById('searchInput').addEventListener('keydown', function(e){
-            if(e.key === 'Enter') {
-                const val = document.getElementById('searchInput').value.trim();
-                if(!val) { return; }
-                window.location.href = '/search?q=' + encodeURIComponent(val);
-            }
         });
     };
     function getFavorites() {

@@ -8,27 +8,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 <body>
-    <!-- Sabit Navbar -->
     <div class="header">
         <div class="logo" onclick="window.location.href='{{ url_for('main.index') }}'">megapazar</div>
-        <div class="search-bar">
-            <input type="text" id="searchInput" placeholder="Ürün veya kategori ara..." autocomplete="off">
-            <span class="search-icon" id="searchBtn"><i class="fas fa-search"></i></span>
-        </div>
-        <div class="header-actions">
-            {% if current_user.is_authenticated %}
-                <button class="login-btn" onclick="window.location.href='{{ url_for('main.account') }}'">Hesabım</button>
-            {% else %}
-                <button class="login-btn" onclick="window.location.href='{{ url_for('main.login') }}'">Giriş Yap / Kayıt Ol</button>
-            {% endif %}
-            <button class="icon-btn" title="Favorilerim" onclick="window.location.href='{{ url_for('main.favorites') }}'"><i class="fa-regular fa-heart"></i></button>
-            <button class="icon-btn" title="Sepetim" onclick="window.location.href='{{ url_for('main.cart') }}'">
-                <i class="fa-solid fa-basket-shopping"></i>
-                <span class="cart-count" id="cartCount">0</span>
-            </button>
-        </div>
     </div>
-    <!-- Ürün Detay İçeriği -->
     <div class="product-detail-container">
         <div class="product-detail-gallery-block">
             <div class="product-thumbnails-vertical">
@@ -51,11 +33,114 @@
                     <i class="fa-regular fa-heart"></i>
                 </button>
             </div>
-            <div class="product-detail-desc-box">{{ product.description }}</div>
+            <!-- Kategoriye göre varyant tablosu -->
+            {% if product.category and product.category.name == 'Giyim' %}
+            <div style="margin:1.5rem 0;">
+                <b>Beden:</b>
+                <div style="display:flex;gap:0.7rem;margin-top:0.5rem;">
+                    {% for size in ['S','L','XL','2XL','3XL'] %}
+                    <button class="size-btn" type="button" data-size="{{ size }}">{{ size }}</button>
+                    {% endfor %}
+                </div>
+            </div>
+            {% elif product.category and product.category.name == 'Ayakkabı' %}
+            <div style="margin:1.5rem 0;">
+                <b>Ayakkabı Numarası:</b>
+                <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.5rem;">
+                    {% for num in ['36 - 37','37 - 38','38 - 39','39 - 40','41 - 42','42 - 43','43 - 44','44 - 45','45 - 46','46 - 47','48 - 49'] %}
+                    <button class="size-btn" type="button" data-num="{{ num }}">{{ num }}</button>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            <!-- Açıklama ve ürün özellikleri -->
+            <div class="product-detail-desc-box" style="margin-top:2rem;">
+                <b>Ürün Açıklaması</b>
+                <div style="margin:0.7rem 0 1.2rem 0;font-size:1.08rem;color:#444;line-height:1.6;">
+                    {# Marka belirleme #}
+                    {% set marka = 'Mistrik' %}
+                    {% if 'Mavi' in product.name %}{% set marka = 'Mavi' %}
+                    {% elif 'Koton' in product.name %}{% set marka = 'Koton' %}
+                    {% elif 'Derimod' in product.name %}{% set marka = 'Derimod' %}
+                    {% elif 'Nike' in product.name %}{% set marka = 'Nike' %}
+                    {% elif 'Adidas' in product.name %}{% set marka = 'Adidas' %}
+                    {% elif 'Vakko' in product.name %}{% set marka = 'Vakko' %}
+                    {% elif 'Defacto' in product.name %}{% set marka = 'Defacto' %}
+                    {% elif 'LC Waikiki' in product.name %}{% set marka = 'LC Waikiki' %}
+                    {% elif 'Penti' in product.name %}{% set marka = 'Penti' %}
+                    {% elif 'Bershka' in product.name %}{% set marka = 'Bershka' %}
+                    {% elif 'Zara' in product.name %}{% set marka = 'Zara' %}
+                    {% elif 'Hummel' in product.name %}{% set marka = 'Hummel' %}
+                    {% elif 'Skechers' in product.name %}{% set marka = 'Skechers' %}
+                    {% elif 'Pierre Cardin' in product.name %}{% set marka = 'Pierre Cardin' %}
+                    {% elif 'FLO' in product.name %}{% set marka = 'FLO' %}
+                    {% elif 'Polaris' in product.name %}{% set marka = 'Polaris' %}
+                    {% elif 'Avon' in product.name %}{% set marka = 'Avon' %}
+                    {% elif 'Watsons' in product.name %}{% set marka = 'Watsons' %}
+                    {% elif 'Gratis' in product.name %}{% set marka = 'Gratis' %}
+                    {% elif 'Decathlon' in product.name %}{% set marka = 'Decathlon' %}
+                    {% elif 'Columbia' in product.name %}{% set marka = 'Columbia' %}
+                    {% elif 'North Face' in product.name %}{% set marka = 'North Face' %}
+                    {% endif %}
+                    {# Cinsiyet belirleme #}
+                    {% set kadin_urunler = [
+                        'Yüksek Bel Keten Pantolon', 'V Yaka Triko Kazak', 'Kruvaze Blazer Ceket', 'Beyaz Askılı Atlet',
+                        'Kemerli Şort', 'Baskılı Crop Tişört', 'Deri Görünümlü Tayt', 'Kapitone Yelek', 'Kruvaze Uzun Ceket',
+                        'Düğmeli Uzun Hırka', 'Kısa Kollu Tunik', 'Klasik Süet Topuklu Ayakkabı', 'Hakiki Deri Loafer',
+                        'Rahat Tabanlı Sandalet', 'Şeffaf Bantlı Topuklu', 'Klasik Topuklu', 'Küçük Deri Omuz Çantası',
+                        'Altın Kaplama Halka Küpe', 'Minimalist Kolye', 'Kapitone El Çantası', 'Klasik Omuz Çantası',
+                        'Klasik Kolye', 'Mat Bitişli Ruj - Kırmızı', 'Göz Altı Kapatıcı', 'Doğal Kaş Jeli',
+                        'Hacim Veren Maskara', 'Hafif Yapılı Fondöten', 'Krem Allık', 'Sıvı Eyeliner', 'Aydınlatıcı Stick',
+                        'Klasik Makyaj Temizleyici', 'Klasik Makyaj Sabitleyici', 'Klasik Makyaj Süngeri', 'Klasik Spor Tayt'
+                    ] %}
+                    {% set cinsiyet = 'Unisex' %}
+                    {% if product.name in kadin_urunler %}
+                        {% set cinsiyet = 'Kadın' %}
+                    {% elif 'Kadın' in product.name or 'Elbise' in product.name or 'Etek' in product.name or 'Bluz' in product.name or 'Sütyen' in product.name or 'Gecelik' in product.name or 'Babet' in product.name or 'Stiletto' in product.name %}
+                        {% set cinsiyet = 'Kadın' %}
+                    {% elif 'Erkek' in product.name or 'Pantolon' in product.name or 'Ceket' in product.name or 'Sweatshirt' in product.name or 'Mont' in product.name or 'Gömlek' in product.name %}
+                        {% set cinsiyet = 'Erkek' %}
+                    {% endif %}
+                    {# Stok adedi belirleme #}
+                    {% set stok = 'Stokta var' %}
+                    {% if product.price < 20000 %}
+                        {% set stok = '1.000 adetten az' %}
+                    {% elif 'Elbise' in product.name or 'Ayakkabı' in product.name or 'Çanta' in product.name %}
+                        {% set stok = '10 adetten az' %}
+                    {% elif product.price > 100000 %}
+                        {% set stok = 'Sınırlı stok' %}
+                    {% endif %}
+                    {# Açıklama metni #}
+                    {% if product.category and product.category.name == 'Giyim' %}
+                        {{ marka }} markasının {{ product.name }} ürünü, günlük kullanım için idealdir. Modern tasarımı ve kaliteli kumaşıyla öne çıkar. Farklı beden seçenekleriyle her tarza uygundur.
+                    {% elif product.category and product.category.name == 'Ayakkabı' %}
+                        {{ marka }} markasının {{ product.name }} modeli, dayanıklı tabanı ve şık tasarımıyla hem spor hem de günlük kombinlerinizde tercih edebilirsiniz.
+                    {% elif product.category and product.category.name == 'Aksesuar & Çanta' %}
+                        {{ marka }} markasının {{ product.name }} ürünü, tarzınızı tamamlayacak modern ve kullanışlı bir aksesuardır.
+                    {% elif product.category and product.category.name == 'Ev & İç Giyim' %}
+                        {{ marka }} markasının {{ product.name }} ürünü, evde konforu ve şıklığı bir arada sunar. Yumuşak dokusu ve rahat kalıbıyla vazgeçilmeziniz olacak.
+                    {% elif product.category and product.category.name == 'Kozmetik' %}
+                        {{ marka }} markasının {{ product.name }} ürünü, cildinizin ihtiyaç duyduğu bakımı sağlar. Dermatolojik olarak test edilmiştir.
+                    {% elif product.category and product.category.name == 'Spor & Outdoor' %}
+                        {{ marka }} markasının {{ product.name }} ürünüyle spor ve outdoor aktivitelerinizde maksimum performans ve konforu yaşayın.
+                    {% else %}
+                        {{ product.description }}
+                    {% endif %}
+                </div>
+                <div style="background:#fafbfc;border-radius:14px;padding:1.1rem 1.5rem;display:flex;gap:2.5rem;align-items:center;box-shadow:0 2px 16px rgba(229,57,53,0.07);">
+                    <div style="flex:1;">
+                        <div style="color:#888;font-size:1.01rem;">Cinsiyet</div>
+                        <div style="font-size:1.13rem;font-weight:600;">{{ cinsiyet }}</div>
+                    </div>
+                    <div style="flex:1;">
+                        <div style="color:#888;font-size:1.01rem;">Stok Adedi</div>
+                        <div style="font-size:1.13rem;font-weight:600;">{{ stok }}</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     <div class="popup" id="popup"></div>
-
     <!-- Benzer Ürünler, Çok Satanlar, Yeni Gelenler -->
     <div class="product-extra-sections">
         <div class="product-section">
@@ -188,5 +273,52 @@
         });
     });
     </script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Beden seçimi
+        document.querySelectorAll('.size-btn[data-size]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.size-btn[data-size]').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                window.selectedSize = btn.getAttribute('data-size');
+            });
+        });
+        // Numara seçimi
+        document.querySelectorAll('.size-btn[data-num]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.size-btn[data-num]').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                window.selectedNum = btn.getAttribute('data-num');
+            });
+        });
+    });
+    </script>
+    <style>
+    .size-btn {
+        padding: 0.5rem 1.4rem;
+        border-radius: 12px;
+        border: 1.5px solid #eee;
+        background: #fff;
+        font-weight: 600;
+        font-size: 1.13rem;
+        color: #222;
+        margin-bottom: 0.5rem;
+        box-shadow: 0 2px 8px rgba(229,57,53,0.07);
+        cursor: pointer;
+        transition: border 0.18s, color 0.18s, background 0.18s;
+        outline: none;
+    }
+    .size-btn:hover {
+        background: #fff3f3;
+        border: 1.5px solid #e53935;
+        color: #e53935;
+    }
+    .size-btn.active {
+        color: #e53935 !important;
+        border: 2px solid #e53935 !important;
+        background: #fff7f7 !important;
+        box-shadow: 0 2px 12px rgba(229,57,53,0.10);
+    }
+    </style>
 </body>
 </html> 

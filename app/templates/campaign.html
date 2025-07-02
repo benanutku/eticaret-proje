@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>{{ camp_name }} | megapazar</title>
+    <title>{{ camp_name|capitalize }} Kampanyası | megapazar</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
@@ -24,7 +24,6 @@
     });
     function renderCamp() {
         const camp = '{{ camp_name }}'.toLowerCase();
-        // Demo: kampanya adına göre ürün filtrele (ör: indirimli ürünler)
         let filtered = allProducts;
         if(camp.includes('indirim')) filtered = allProducts.filter(p => p.price < 50000);
         if(camp.includes('kargo')) filtered = allProducts.filter(p => p.price > 30000);
@@ -36,20 +35,19 @@
         div.innerHTML = '';
         filtered.forEach(p => {
             div.innerHTML += `
-<div class='product-card'>
-  <div class='product-image-container'>
-    <a href='/product/${p.id}'><img src='${p.image_url}' alt='${p.name}'></a>
-  </div>
-  <a href='/product/${p.id}' style='text-decoration:none;color:inherit;'>
-    <div class='product-title'>${p.name}</div>
-  </a>
-  <div class='product-desc'>${p.description}</div>
-  <div class='product-price'>${p.price/100} TL</div>
-  <div class='product-actions'>
-    <button class='btn campaign-add-to-cart-btn' onclick='addToCart(${p.id}, "${p.name}", "${p.price}")'><i class="fa-solid fa-cart-plus"></i> Sepete Ekle</button>
-    <button class='btn campaign-favorite-btn' onclick='addToFavorites(${p.id})'><i class='fa-regular fa-heart'></i></button>
-  </div>
-</div>`;
+            <div class='product-card' data-product-id='${p.id}'>
+                <a href='/product/${p.id}' class='product-image-container' style='display:block;text-align:center;'>
+                    <img src='${p.image_url ? p.image_url : '/static/img/default.jpg'}' alt='${p.name}'>
+                </a>
+                <a href='/product/${p.id}' class='product-name' style='display:block;text-align:center;text-decoration:none;color:inherit;'>
+                    <h3>${p.name}</h3>
+                </a>
+                <p class='product-price'>${(p.price/100).toFixed(2)} TL</p>
+                <div class='product-actions'>
+                    <button class='btn main-add-to-cart-btn' onclick='addToCart(${p.id}, "${p.name}", ${p.price})'><i class="fa-solid fa-cart-plus"></i> Sepete Ekle</button>
+                    <button class='btn main-favorite-btn' onclick='toggleFavorite(${p.id}, this)' title='Favorilere ekle/çıkar'><i class='fa-regular fa-heart'></i></button>
+                </div>
+            </div>`;
         });
     }
     function showPopup(msg) {
@@ -69,9 +67,22 @@
     }
     function getFavorites() { return JSON.parse(localStorage.getItem('favorites') || '[]'); }
     function setFavorites(favs) { localStorage.setItem('favorites', JSON.stringify(favs)); }
-    function addToFavorites(id) {
+    function toggleFavorite(id, btn) {
         let favs = getFavorites();
-        if(!favs.includes(id)) { favs.push(id); setFavorites(favs); showPopup('Favorilere eklendi!'); }
+        if(favs.includes(id)) {
+            favs = favs.filter(f => f !== id);
+            btn.classList.remove('active');
+            btn.querySelector('i').classList.remove('fa-solid');
+            btn.querySelector('i').classList.add('fa-regular');
+            showPopup('Favorilerden çıkarıldı');
+        } else {
+            favs.push(id);
+            btn.classList.add('active');
+            btn.querySelector('i').classList.remove('fa-regular');
+            btn.querySelector('i').classList.add('fa-solid');
+            showPopup('Favorilere eklendi!');
+        }
+        setFavorites(favs);
     }
     </script>
 </body>

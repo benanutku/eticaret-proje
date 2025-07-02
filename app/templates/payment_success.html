@@ -86,5 +86,19 @@
         <div class="success-desc">Satın alma işleminiz başarıyla tamamlandı.<br> Siparişiniz işleme alındı ve en kısa sürede hazırlanacak.<br>Teşekkür ederiz!</div>
         <a href="{{ url_for('main.index') }}" class="success-btn">Ana Sayfaya Dön</a>
     </div>
+    <script>
+    // localStorage'daki cart'ı backend'e gönder, sonra localStorage'dan sil
+    (async function() {
+        const cart = JSON.parse(localStorage.getItem('cart') || '{}');
+        if(Object.keys(cart).length > 0) {
+            await fetch('/sync-cart', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cart })
+            });
+            localStorage.setItem('cart', '{}');
+        }
+    })();
+    </script>
 </body>
 </html> 

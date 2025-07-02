@@ -3,10 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <title>Ödeme İptal Edildi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        body {
+            background: #f7f8fa;
+            margin: 0;
+            font-family: 'Poppins', Arial, sans-serif;
+        }
+        .cancel-container {
+            max-width: 420px;
+            margin: 8vh auto 0 auto;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 4px 32px rgba(229, 57, 53, 0.10);
+            padding: 2.5rem 2rem 2rem 2rem;
+            text-align: center;
+            animation: fadeIn 1s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .cancel-icon {
+            color: #e53935;
+            font-size: 4.5rem;
+            margin-bottom: 1.2rem;
+            animation: pop 0.7s cubic-bezier(.68,-0.55,.27,1.55);
+        }
+        @keyframes pop {
+            0% { transform: scale(0.5); opacity: 0; }
+            80% { transform: scale(1.15); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+        .cancel-title {
+            font-size: 2.1rem;
+            font-weight: 700;
+            color: #e53935;
+            margin-bottom: 0.7rem;
+        }
+        .cancel-desc {
+            font-size: 1.15rem;
+            color: #444;
+            margin-bottom: 1.5rem;
+        }
+        .cancel-btn {
+            background: #e53935;
+            color: #fff;
+            border: none;
+            border-radius: 22px;
+            padding: 0.7rem 2.2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 1rem;
+            box-shadow: 0 2px 8px rgba(229,57,53,0.07);
+            text-decoration: none;
+            display: inline-block;
+        }
+        .cancel-btn:hover {
+            background: #b71c1c;
+        }
+        .cancel-logo {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #e53935;
+            letter-spacing: 1px;
+            margin-bottom: 2.2rem;
+        }
+        @media (max-width: 600px) {
+            .cancel-container { padding: 1.2rem 0.5rem; }
+            .cancel-title { font-size: 1.3rem; }
+            .cancel-icon { font-size: 3rem; }
+        }
+    </style>
 </head>
 <body>
-    <h1>Ödeme İptal Edildi</h1>
-    <p>Ödeme işleminiz iptal edildi veya başarısız oldu.</p>
-    <a href="{{ url_for('main.index') }}">Ana Sayfaya Dön</a>
+    <div class="cancel-container">
+        <div class="cancel-logo">megapazar</div>
+        <div class="cancel-icon"><i class="fa-solid fa-circle-xmark"></i></div>
+        <div class="cancel-title">Ödeme İptal Edildi</div>
+        <div class="cancel-desc">Ödeme işleminiz iptal edildi veya başarısız oldu.<br>İşleminizi tekrar deneyebilir veya ana sayfaya dönebilirsiniz.</div>
+        <a href="{{ url_for('main.index') }}" class="cancel-btn">Ana Sayfaya Dön</a>
+    </div>
 </body>
 </html> 

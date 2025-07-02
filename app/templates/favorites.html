@@ -34,7 +34,7 @@
     }
     function removeFavorite(id) {
         let favs = getFavorites();
-        favs = favs.filter(f => f !== id);
+        favs = favs.filter(f => f != id);
         localStorage.setItem('favorites', JSON.stringify(favs));
         renderFavs();
         showPopup('Favorilerden çıkarıldı');
@@ -72,7 +72,7 @@
   <div class='product-price'>${(p.price/100).toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} TL</div>
   <div class='product-actions'>
     <button class='btn fav-add-to-cart-btn' onclick='addToCart(${p.id}, "${p.name}", "${p.price}")'><i class="fa-solid fa-cart-plus"></i> Sepete Ekle</button>
-    <button class='btn fav-favorite-btn' onclick='removeFavorite("${p.id}")' title='Favorilerden çıkar'><i class='fa-solid fa-xmark'></i></button>
+    <button class='btn fav-favorite-btn' onclick='removeFavorite(${p.id})' title='Favorilerden çıkar'><i class='fa-solid fa-xmark'></i></button>
   </div>
 </div>`;
                 });

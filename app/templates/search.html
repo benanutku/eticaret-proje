@@ -22,8 +22,12 @@
     </div>
     <div class="popup" id="popup"></div>
     <script>
-    let allProducts = [];
-    fetch('/api/products').then(res=>res.json()).then(data=>{allProducts=data;});
+    let allProducts = {{ products|tojson|safe if products is defined else '[]' }};
+    if (!Array.isArray(allProducts)) allProducts = [];
+    // Eğer backend'den ürün gelmediyse, API'den çek
+    if (!allProducts || allProducts.length === 0) {
+        fetch('/api/products').then(res=>res.json()).then(data=>{allProducts=data;});
+    }
     const searchInput = document.getElementById('searchInput');
     const suggestionBox = document.getElementById('search-suggestions');
     const searchBtn = document.getElementById('searchBtn');
@@ -42,14 +46,17 @@
         }
         list.forEach(p => {
             resDiv.innerHTML += `
-            <div class='product-card'>
-                <img src='${p.image_url}' alt='${p.name}'>
-                <div class='product-title'>${p.name}</div>
-                <div class='product-desc'>${p.description}</div>
-                <div class='product-price'>${p.price/100} TL</div>
+            <div class='product-card' data-product-id='${p.id}'>
+                <a href='/product/${p.id}' class='product-image-container' style='display:block;text-align:center;'>
+                    <img src='${p.image_url ? p.image_url : '/static/img/default.jpg'}' alt='${p.name}'>
+                </a>
+                <a href='/product/${p.id}' class='product-name' style='display:block;text-align:center;text-decoration:none;color:inherit;'>
+                    <h3>${p.name}</h3>
+                </a>
+                <p class='product-price'>${(p.price/100).toFixed(2)} TL</p>
                 <div class='product-actions'>
-                    <button class='btn' onclick='addToCart(${p.id}, "${p.name}", "${p.price}")'>Sepete Ekle</button>
-                    <button class='btn fav' onclick='addToFavorites(${p.id})'><i class='fa-regular fa-heart'></i></button>
+                    <button class='btn main-add-to-cart-btn' onclick='addToCart(${p.id}, "${p.name}", ${p.price})'><i class="fa-solid fa-cart-plus"></i> Sepete Ekle</button>
+                    <button class='btn main-favorite-btn' onclick='toggleFavorite(${p.id}, this)' title='Favorilere ekle/çıkar'><i class='fa-regular fa-heart'></i></button>
                 </div>
             </div>`;
         });
@@ -57,7 +64,10 @@
     function doSearch() {
         const val = searchInput.value.trim().toLowerCase();
         if(!val) { showPopup('Lütfen arama terimi girin!'); return; }
-        const filtered = allProducts.filter(p => p.name.toLowerCase().includes(val) || p.description.toLowerCase().includes(val));
+        const filtered = allProducts.filter(p => 
+            (p.name && p.name.toLowerCase().includes(val)) ||
+            (p.description && p.description.toLowerCase().includes(val))
+        );
         renderResults(filtered);
     }
     searchBtn.onclick = doSearch;
@@ -75,7 +85,6 @@
             suggestionBox.style.display = 'none';
         }
     });
-    // Sepet ve favori işlemleri (demo)
     function getCart() { return JSON.parse(localStorage.getItem('cart') || '{}'); }
     function setCart(cart) { localStorage.setItem('cart', JSON.stringify(cart)); }
     function addToCart(id, name, price) {
@@ -87,9 +96,22 @@
     }
     function getFavorites() { return JSON.parse(localStorage.getItem('favorites') || '[]'); }
     function setFavorites(favs) { localStorage.setItem('favorites', JSON.stringify(favs)); }
-    function addToFavorites(id) {
+    function toggleFavorite(id, btn) {
         let favs = getFavorites();
-        if(!favs.includes(id)) { favs.push(id); setFavorites(favs); showPopup('Favorilere eklendi!'); }
+        if(favs.includes(id)) {
+            favs = favs.filter(f => f !== id);
+            btn.classList.remove('active');
+            btn.querySelector('i').classList.remove('fa-solid');
+            btn.querySelector('i').classList.add('fa-regular');
+            showPopup('Favorilerden çıkarıldı');
+        } else {
+            favs.push(id);
+            btn.classList.add('active');
+            btn.querySelector('i').classList.remove('fa-regular');
+            btn.querySelector('i').classList.add('fa-solid');
+            showPopup('Favorilere eklendi!');
+        }
+        setFavorites(favs);
     }
     // İlk yüklemede query string ile arama
     window.onload = function() {

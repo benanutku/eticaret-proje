@@ -11,67 +11,218 @@
     <div class="header">
         <div class="logo" onclick="window.location.href='{{ url_for('main.index') }}'">megapazar</div>
     </div>
-    <div style="max-width:900px;margin:2rem auto;">
-        <h2 style="color:#e53935;text-align:center;">{{ cat_name }}</h2>
-        <div class="product-row">
-            {% if products and products|length > 0 %}
-                {% for p in products %}
-                <div class="product-card" data-product-id="{{ p.id }}">
-                    <div class="product-image-container">
-                        <a href="/product/{{ p.id }}">
-                            <img src="{{ p.image_url if p.image_url else '/static/img/default.jpg' }}" alt="{{ p.name }}">
-                        </a>
-                    </div>
-                    <a href="/product/{{ p.id }}" style="text-decoration:none;color:inherit;">
-                        <h3 class="product-name">{{ p.name }}</h3>
-                    </a>
-                    <p class="product-price">{{ '%.2f' % (p.price / 100) }} TL</p>
-                    <div class="product-actions">
-                        <button class="add-to-cart-btn" onclick="addToCart({{ p.id }}, '{{ p.name }}', {{ p.price }})">Sepete Ekle</button>
-                        <button class="favorite-btn" onclick="toggleFavorite({{ p.id }}, this)"><i class="fa-regular fa-heart"></i></button>
+    <div style="max-width:1200px;margin:2rem auto;display:flex;gap:2.5rem;align-items:flex-start;">
+        <!-- FİLTRE PANELİ -->
+        {% set giyim_bedenler = ['XS','S','M','L','XL','2XL','3XL'] %}
+        {% set giyim_markalar = ['Mavi','Koton','Derimod','Nike','Adidas','Vakko','Defacto','LC Waikiki','Penti','Bershka','Zara','Hummel','Skechers','Pierre Cardin','FLO','Polaris','Mistrik'] %}
+        {% set ayakkabi_numaralari = ['36 - 37','37 - 38','38 - 39','39 - 40','41 - 42','42 - 43','43 - 44','44 - 45','45 - 46','46 - 47','48 - 49'] %}
+        {% set ayakkabi_markalar = ['Derimod','Nike','Adidas','Vakko','Skechers','FLO','Polaris','Mistrik'] %}
+        {% set diger_markalar = ['Vakko','Defacto','LC Waikiki','Penti','Bershka','Zara','Hummel','Pierre Cardin','Avon','Watsons','Gratis','Decathlon','Columbia','North Face','Mistrik'] %}
+        {% if cat_name == 'Giyim' or cat_name == 'Ayakkabı' or cat_name == 'Aksesuar & Çanta' or cat_name == 'Ev & İç Giyim' or cat_name == 'Kozmetik' or cat_name == 'Spor & Outdoor' %}
+        <div id="filter-panel" style="background:#fff;border-radius:18px;padding:2rem 1.5rem;box-shadow:0 2px 16px rgba(229,57,53,0.07);min-width:240px;">
+            <div style="font-weight:600;font-size:1.15rem;margin-bottom:1.2rem;">Filtrele</div>
+            {% if cat_name == 'Giyim' %}
+            <!-- Beden -->
+            <div style="margin-bottom:1.5rem;">
+                <div style="font-weight:500;margin-bottom:0.7rem;">Beden</div>
+                {% for beden in giyim_bedenler %}
+                <label style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.4rem;cursor:pointer;">
+                    <input type="checkbox" class="filter-size" value="{{ beden }}" style="accent-color:#e53935;width:18px;height:18px;">
+                    <span>{{ beden }}</span>
+                </label>
+                {% endfor %}
+            </div>
+            {% elif cat_name == 'Ayakkabı' %}
+            <!-- Ayakkabı Numarası -->
+            <div style="margin-bottom:1.5rem;">
+                <div style="font-weight:500;margin-bottom:0.7rem;">Numara</div>
+                {% for num in ayakkabi_numaralari %}
+                <label style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.4rem;cursor:pointer;">
+                    <input type="checkbox" class="filter-size" value="{{ num }}" style="accent-color:#e53935;width:18px;height:18px;">
+                    <span>{{ num }}</span>
+                </label>
+                {% endfor %}
+            </div>
+            {% endif %}
+            <!-- Fiyat -->
+            <div style="margin-bottom:1.5rem;">
+                <div style="font-weight:500;margin-bottom:0.7rem;">Fiyat</div>
+                <div style="display:flex;gap:0.7rem;align-items:center;">
+                    <input type="number" id="filter-min-price" placeholder="Min" style="width:70px;padding:0.3rem 0.5rem;border-radius:7px;border:1px solid #ddd;">
+                    <span>-</span>
+                    <input type="number" id="filter-max-price" placeholder="Max" style="width:70px;padding:0.3rem 0.5rem;border-radius:7px;border:1px solid #ddd;">
+                </div>
+            </div>
+            <!-- Marka -->
+            <div style="margin-bottom:1.5rem;">
+                <div style="font-weight:500;margin-bottom:0.7rem;">Marka</div>
+                {% if cat_name == 'Giyim' %}
+                    {% for marka in giyim_markalar %}
+                    <label style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.4rem;cursor:pointer;">
+                        <input type="checkbox" class="filter-brand" value="{{ marka }}" style="accent-color:#e53935;width:18px;height:18px;">
+                        <span>{{ marka }}</span>
+                    </label>
+                    {% endfor %}
+                {% elif cat_name == 'Ayakkabı' %}
+                    {% for marka in ayakkabi_markalar %}
+                    <label style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.4rem;cursor:pointer;">
+                        <input type="checkbox" class="filter-brand" value="{{ marka }}" style="accent-color:#e53935;width:18px;height:18px;">
+                        <span>{{ marka }}</span>
+                    </label>
+                    {% endfor %}
+                {% else %}
+                    {% for marka in diger_markalar %}
+                    <label style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.4rem;cursor:pointer;">
+                        <input type="checkbox" class="filter-brand" value="{{ marka }}" style="accent-color:#e53935;width:18px;height:18px;">
+                        <span>{{ marka }}</span>
+                    </label>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <button id="apply-filters-btn" style="width:100%;background:#e53935;color:#fff;font-weight:600;padding:0.7rem 0;border:none;border-radius:8px;font-size:1.08rem;cursor:pointer;">Ara</button>
+        </div>
+        {% endif %}
+        <!-- ÜRÜNLER -->
+        <div style="flex:1;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;">
+                <h2 style="color:#e53935;text-align:center;">{{ cat_name }}</h2>
+                <!-- Sıralama Dropdown -->
+                <div style="position:relative;">
+                    <button id="sort-btn" style="background:#fff;border:1px solid #eee;padding:0.6rem 1.2rem;border-radius:10px;font-size:1.05rem;display:flex;align-items:center;gap:0.5rem;cursor:pointer;">
+                        <span id="sort-btn-label">Önerilen</span>
+                        <span style="color:#e53935;font-size:1.2rem;">&#8597;</span>
+                    </button>
+                    <div id="sort-dropdown" style="display:none;position:absolute;top:110%;right:0;width:180px;background:#fff;border-radius:0 0 14px 14px;box-shadow:0 4px 16px rgba(0,0,0,0.07);z-index:10;">
+                        <div class="sort-option" data-sort="random" style="padding:0.8rem 1.2rem;cursor:pointer;">Önerilen</div>
+                        <div class="sort-option" data-sort="asc" style="padding:0.8rem 1.2rem;cursor:pointer;">En düşük fiyat</div>
+                        <div class="sort-option" data-sort="desc" style="padding:0.8rem 1.2rem;cursor:pointer;">En yüksek fiyat</div>
                     </div>
                 </div>
-                {% endfor %}
-            {% else %}
-                <div style="text-align:center;color:#aaa;">Bu kategoriye ait ürün yok.</div>
-            {% endif %}
+            </div>
+            <div class="product-row" id="category-product-list">
+                {% if products and products|length > 0 %}
+                    {% for p in products %}
+                    <div class="product-card" data-product-id="{{ p.id }}" data-price="{{ p.price }}" data-brand="{{ p.name.split(' ')[0] }}">
+                        <div class="product-image-container">
+                            <a href="/product/{{ p.id }}">
+                                <img src="{{ p.image_url if p.image_url else '/static/img/default.jpg' }}" alt="{{ p.name }}">
+                            </a>
+                        </div>
+                        <a href="/product/{{ p.id }}" style="text-decoration:none;color:inherit;">
+                            <h3 class="product-name">{{ p.name }}</h3>
+                        </a>
+                        <p class="product-price">{{ '%.2f' % (p.price / 100) }} TL</p>
+                        <div class="product-actions">
+                            <button class="add-to-cart-btn" onclick="addToCart({{ p.id }}, '{{ p.name }}', {{ p.price }})">Sepete Ekle</button>
+                            <button class="favorite-btn" onclick="toggleFavorite({{ p.id }}, this)"><i class="fa-regular fa-heart"></i></button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div style="text-align:center;color:#aaa;">Bu kategoride ürün yok.</div>
+                {% endif %}
+            </div>
         </div>
     </div>
     <div class="popup" id="popup"></div>
     <script>
+    function getCart() {
+        return JSON.parse(localStorage.getItem('cart') || '{}');
+    }
+    function setCart(cart) {
+        localStorage.setItem('cart', JSON.stringify(cart));
+    }
+    function addToCart(productId, name, price) {
+        const cart = getCart();
+        if(!cart[productId]) cart[productId] = {name, price, qty: 0};
+        cart[productId].qty++;
+        setCart(cart);
+        showPopup('Ürün sepete eklendi!');
+    }
     function showPopup(msg) {
         const popup = document.getElementById('popup');
         popup.textContent = msg;
         popup.classList.add('show');
         setTimeout(() => popup.classList.remove('show'), 2000);
     }
-    function getCart() { return JSON.parse(localStorage.getItem('cart') || '{}'); }
-    function setCart(cart) { localStorage.setItem('cart', JSON.stringify(cart)); }
-    function addToCart(id, name, price) {
-        const cart = getCart();
-        if(!cart[id]) cart[id] = {name, price, qty: 0};
-        cart[id].qty++;
-        setCart(cart);
-        showPopup('Ürün sepete eklendi!');
+    function getFavorites() {
+        return JSON.parse(localStorage.getItem('favorites') || '[]');
     }
-    function getFavorites() { return JSON.parse(localStorage.getItem('favorites') || '[]'); }
-    function setFavorites(favs) { localStorage.setItem('favorites', JSON.stringify(favs)); }
-    function addToFavorites(id) {
+    function setFavorites(favs) {
+        localStorage.setItem('favorites', JSON.stringify(favs));
+    }
+    function toggleFavorite(productId, btn) {
         let favs = getFavorites();
-        if(!favs.includes(id)) { favs.push(id); setFavorites(favs); showPopup('Favorilere eklendi!'); }
+        if(favs.includes(productId)) {
+            favs = favs.filter(f => f !== productId);
+            btn.classList.remove('active');
+            btn.querySelector('i').classList.remove('fa-solid');
+            btn.querySelector('i').classList.add('fa-regular');
+            showPopup('Favorilerden çıkarıldı');
+        } else {
+            favs.push(productId);
+            btn.classList.add('active');
+            btn.querySelector('i').classList.remove('fa-regular');
+            btn.querySelector('i').classList.add('fa-solid');
+            showPopup('Favorilere eklendi!');
+        }
+        setFavorites(favs);
     }
+    // Filtre uygulama scripti
     document.addEventListener('DOMContentLoaded', function() {
-        // Favori kalp ikonlarını doldur
-        var favs = JSON.parse(localStorage.getItem('favorites') || '[]');
-        document.querySelectorAll('.product-card').forEach(function(card) {
-            var pid = card.getAttribute('data-product-id');
-            if(favs.includes(String(pid))) {
-                var btn = card.querySelector('.favorite-btn');
-                btn.classList.add('active');
-                btn.querySelector('i').classList.remove('fa-regular');
-                btn.querySelector('i').classList.add('fa-solid');
-            }
-        });
+        // Sıralama dropdown
+        const sortBtn = document.getElementById('sort-btn');
+        const sortDropdown = document.getElementById('sort-dropdown');
+        const sortBtnLabel = document.getElementById('sort-btn-label');
+        if(sortBtn) {
+            sortBtn.onclick = function(e) {
+                sortDropdown.style.display = sortDropdown.style.display === 'block' ? 'none' : 'block';
+                e.stopPropagation();
+            };
+            document.addEventListener('click', function() { sortDropdown.style.display = 'none'; });
+            sortDropdown.querySelectorAll('.sort-option').forEach(opt => {
+                opt.onclick = function() {
+                    sortBtnLabel.textContent = this.textContent;
+                    sortDropdown.style.display = 'none';
+                    const sortType = this.getAttribute('data-sort');
+                    const cards = Array.from(document.querySelectorAll('#category-product-list .product-card'));
+                    if(sortType === 'random') {
+                        for(let i = cards.length - 1; i > 0; i--) {
+                            const j = Math.floor(Math.random() * (i + 1));
+                            cards[i].parentNode.insertBefore(cards[j], cards[i]);
+                        }
+                    } else if(sortType === 'asc') {
+                        cards.sort((a,b) => parseFloat(a.getAttribute('data-price')) - parseFloat(b.getAttribute('data-price')));
+                        cards.forEach(card => card.parentNode.appendChild(card));
+                    } else if(sortType === 'desc') {
+                        cards.sort((a,b) => parseFloat(b.getAttribute('data-price')) - parseFloat(a.getAttribute('data-price')));
+                        cards.forEach(card => card.parentNode.appendChild(card));
+                    }
+                };
+            });
+        }
+        const applyBtn = document.getElementById('apply-filters-btn');
+        if(applyBtn) {
+            applyBtn.onclick = function() {
+                const selectedSizes = Array.from(document.querySelectorAll('.filter-size:checked')).map(cb => cb.value);
+                const minPrice = parseFloat(document.getElementById('filter-min-price').value) || 0;
+                const maxPrice = parseFloat(document.getElementById('filter-max-price').value) || 999999;
+                const selectedBrands = Array.from(document.querySelectorAll('.filter-brand:checked')).map(cb => cb.value);
+                document.querySelectorAll('#category-product-list .product-card').forEach(card => {
+                    let show = true;
+                    // Fiyat
+                    const price = parseFloat(card.getAttribute('data-price')) / 100;
+                    if(price < minPrice || price > maxPrice) show = false;
+                    // Marka
+                    const brand = card.getAttribute('data-brand');
+                    if(selectedBrands.length > 0 && !selectedBrands.includes(brand)) show = false;
+                    // Beden filtresi: Seçiliyse bile ürünleri gizleme!
+                    // Eskiden: ürün adında beden yoksa gizle
+                    // Şimdi: beden filtresi seçili olsa da ürünleri gizleme
+                    card.style.display = show ? '' : 'none';
+                });
+            };
+        }
     });
     </script>
 </body>

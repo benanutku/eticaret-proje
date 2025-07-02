@@ -1,8 +1,9 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, jsonify, abort
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, jsonify, abort, session
 from .models import db, Product, Category, User
 import stripe
 import random
 from flask_login import login_user, logout_user, login_required, current_user
+import datetime
 
 main_bp = Blueprint('main', __name__)
 
@@ -125,7 +126,17 @@ def search():
     products = []
     if q:
         products = Product.query.filter(Product.name.ilike(f'%{q}%')).all()
-    return render_template('search.html', products=products, q=q)
+    # Her ürünün description'ı None ise boş string yap ve dict'e çevir
+    product_dicts = []
+    for p in products:
+        product_dicts.append({
+            'id': p.id,
+            'name': p.name,
+            'description': p.description or "",
+            'price': p.price,
+            'image_url': p.image_url
+        })
+    return render_template('search.html', products=product_dicts, q=q)
 
 @main_bp.route('/category/<string:cat_name>')
 def category(cat_name):
@@ -144,6 +155,7 @@ def api_products():
     return jsonify([{'id': p.id, 'name': p.name, 'description': p.description, 'price': p.price, 'image_url': p.image_url} for p in products])
 
 @main_bp.route('/create-checkout-session', methods=['POST'])
+@login_required
 def create_checkout_session():
     data = request.get_json()
     cart = data.get('cart', {})
@@ -225,4 +237,76 @@ def populate_30_products_per_category():
             p.category = cat_objs[cat]
             db.session.add(p)
     db.session.commit()
-    return 'Her kategoriye 30 gerçekçi isimli ürün eklendi!' 
+    return 'Her kategoriye 30 gerçekçi isimli ürün eklendi!'
+
+@main_bp.route('/my-orders')
+@login_required
+def my_orders():
+    orders = session.get('orders', [])
+    if not isinstance(orders, list):
+        orders = []
+    return render_template('my_orders.html', orders=orders)
+
+@main_bp.route('/my-profile', methods=['GET', 'POST'])
+@login_required
+def my_profile():
+    info_success = info_error = pass_success = pass_error = None
+    if request.method == 'POST':
+        # Hangi formdan geldiğini ayırt et
+        if 'first_name' in request.form and 'last_name' in request.form:
+            # Üyelik bilgileri güncelleme
+            first_name = request.form['first_name'].strip()
+            last_name = request.form['last_name'].strip()
+            if not first_name or not last_name:
+                info_error = 'Ad ve soyad boş olamaz.'
+            else:
+                current_user.first_name = first_name
+                current_user.last_name = last_name
+                db.session.commit()
+                info_success = 'Bilgileriniz başarıyla güncellendi.'
+        elif 'current_password' in request.form and 'new_password' in request.form and 'new_password2' in request.form:
+            # Şifre güncelleme
+            current_password = request.form['current_password']
+            new_password = request.form['new_password']
+            new_password2 = request.form['new_password2']
+            if not current_user.check_password(current_password):
+                pass_error = 'Mevcut şifreniz yanlış.'
+            elif new_password != new_password2:
+                pass_error = 'Yeni şifreler eşleşmiyor.'
+            elif len(new_password) < 8 or not any(c.islower() for c in new_password) or not any(c.isupper() for c in new_password) or not any(c.isdigit() for c in new_password):
+                pass_error = 'Şifre en az 8 karakter, 1 büyük harf, 1 küçük harf ve rakam içermelidir.'
+            else:
+                current_user.set_password(new_password)
+                db.session.commit()
+                try:
+                    user = User.query.get(current_user.id)
+                    login_user(user)
+                    pass_success = 'Şifreniz başarıyla güncellendi.'
+                except Exception as e:
+                    pass_error = 'Oturum güncellenirken hata oluştu: ' + str(e)
+    return render_template('my_profile.html', user=current_user, info_success=info_success, info_error=info_error, pass_success=pass_success, pass_error=pass_error)
+
+@main_bp.route('/sync-cart', methods=['POST'])
+@login_required
+def sync_cart():
+    data = request.get_json()
+    cart = data.get('cart', {})
+    session['cart'] = cart
+    if cart:
+        orders = session.get('orders', [])
+        items = []
+        total = 0
+        for pid, item in cart.items():
+            items.append({'id': pid, 'name': item['name'], 'qty': item['qty'], 'price': item['price']})
+            total += item['qty'] * (item['price'] / 100)
+        order = {
+            'id': len(orders) + 1,
+            'date': datetime.datetime.now().strftime('%Y-%m-%d'),
+            'total': total,
+            'status': 'Kargoda',
+            'items': items
+        }
+        orders.append(order)
+        session['orders'] = orders
+        session['cart'] = {}  # Sepeti boşalt
+    return jsonify({'ok': True}) 
